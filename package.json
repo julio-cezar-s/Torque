@@ -1,0 +1,29 @@
+{
+  "name": "torque-gestao-oficina",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plataforma de Gestão de Oficina Automotiva (área pública, painel administrativo e área do cliente), com API e banco de dados SQLite próprios.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node server.js",
+    "dev:all": "concurrently -n API,APP -c blue,green \"npm:server\" \"npm:dev\""
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "lucide-react": "^0.383.0",
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "pg": "^8.12.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.0",
+    "concurrently": "^8.2.2"
+  }
+}
