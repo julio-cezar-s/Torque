@@ -233,7 +233,7 @@ app.get("/api/health", rota(async (req, res) => { await pool.query("SELECT 1"); 
 
 // --- Autenticação ---
 app.post("/api/login", rota(async (req, res) => {
-  const { email, senha } = req.body || {};
+  if (ADMINS.some((a) => a.email === emailNormalizado && a.senha === senha)) {
   if (!email || !senha) return res.status(400).json({ error: "Informe e-mail e senha." });
   const emailNormalizado = String(email).trim().toLowerCase();
 
