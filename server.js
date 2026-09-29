@@ -45,6 +45,10 @@ const pool = new Pool({
 // para o navegador. Configure no .env antes de publicar o site.
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "admin@torque.com.br").trim().toLowerCase();
 const ADMIN_SENHA = process.env.ADMIN_SENHA || "admin123";
+const ADMINS = [
+  { email: ADMIN_EMAIL, senha: ADMIN_SENHA },
+  { email: (process.env.ADMIN2_EMAIL || "").trim().toLowerCase(), senha: process.env.ADMIN2_SENHA || "" },
+].filter((a) => a.email && a.senha);
 
 // Colunas de cada entidade, na ordem em que serão gravadas.
 // Precisa bater exatamente com os campos usados no app.
