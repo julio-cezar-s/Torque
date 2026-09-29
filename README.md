@@ -8,7 +8,6 @@ Plataforma web para gerenciamento dos serviços de uma oficina automotiva, desen
 
 - João Veiga
 - Ricardo Araújo
-- Kaue Alves
 - Julio Cézar
 - Rayane
 
