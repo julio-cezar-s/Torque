@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Campo } from "../../../compartilhado/componentes/Campo.jsx";
+import { dataNaoPassada } from "../../../compartilhado/validacao/dataNaoPassada.jsx";
+import { errosDoVeiculo } from "../../../compartilhado/validacao/errosDoVeiculo.jsx";
+import { formatarPlaca } from "../../../compartilhado/validacao/formatarPlaca.jsx";
 import { STATUS_AGENDAMENTO } from "../constantes/STATUS_AGENDAMENTO.jsx";
 import { ORDEM_STATUS_AGENDAMENTO } from "../constantes/ORDEM_STATUS_AGENDAMENTO.jsx";
 
@@ -27,17 +30,31 @@ export function CamposAgendamento({ clientes, veiculos, servicos, fixedClienteId
     // eslint-disable-next-line
   }, [efetivoClienteId]);
 
-  const podeSalvar = efetivoClienteId && servicoId && data && hora && (veiculoMode === "existing" ? veiculoId : novoVeiculo.placa.trim());
+  const [tentou, setTentou] = useState(false);
+  const usandoNovoVeiculo = !(veiculoMode === "existing" && veiculosDoCliente.length > 0);
+  const errosVeiculoNovo = errosDoVeiculo(novoVeiculo);
+  const erros = {
+    cliente: efetivoClienteId ? "" : "Selecione o cliente.",
+    veiculo: allowNovoVeiculo ? (usandoNovoVeiculo || veiculoId ? "" : "Escolha o veículo.") : (veiculoId ? "" : "Cadastre um veículo antes de agendar."),
+    placa: usandoNovoVeiculo && allowNovoVeiculo ? errosVeiculoNovo.placa : "",
+    ano: usandoNovoVeiculo && allowNovoVeiculo ? errosVeiculoNovo.ano : "",
+    servico: servicoId ? "" : "Escolha o serviço.",
+    data: !data ? "Informe a data." : (!initial && !dataNaoPassada(data) ? "A data não pode ser no passado." : ""),
+    hora: hora ? "" : "Informe o horário.",
+  };
+  const mostrar = (campo) => (tentou ? erros[campo] : "");
+  const hojeTexto = new Date().toLocaleDateString("sv-SE"); // AAAA-MM-DD no fuso do navegador
 
   const handleSubmit = () => {
-    if (!podeSalvar) return;
+    setTentou(true);
+    if (Object.values(erros).some(Boolean)) return;
     onSubmit({ clienteId: efetivoClienteId, veiculoMode, veiculoId, novoVeiculo, servicoId, data, hora, observacoes, status });
   };
 
   return (
     <>
       {!fixedClienteId && clientes && (
-        <Campo label="Cliente">
+        <Campo label="Cliente" erro={mostrar("cliente")}>
           <select className="wf-select" value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
             {clientes.length === 0 && <option value="">Nenhum cliente cadastrado</option>}
             {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
@@ -60,25 +77,27 @@ export function CamposAgendamento({ clientes, veiculos, servicos, fixedClienteId
         </select>
       ) : allowNovoVeiculo ? (
         <div className="wf-grid3">
-          <Campo label="Placa"><input value={novoVeiculo.placa} onChange={(e) => setNovoVeiculo({ ...novoVeiculo, placa: e.target.value.toUpperCase() })} /></Campo>
+          <Campo label="Placa" erro={mostrar("placa")}><input value={novoVeiculo.placa} onChange={(e) => setNovoVeiculo({ ...novoVeiculo, placa: formatarPlaca(e.target.value) })} placeholder="ABC1D23" maxLength={7} /></Campo>
           <Campo label="Marca"><input value={novoVeiculo.marca} onChange={(e) => setNovoVeiculo({ ...novoVeiculo, marca: e.target.value })} /></Campo>
           <Campo label="Modelo"><input value={novoVeiculo.modelo} onChange={(e) => setNovoVeiculo({ ...novoVeiculo, modelo: e.target.value })} /></Campo>
-          <Campo label="Ano"><input value={novoVeiculo.ano} onChange={(e) => setNovoVeiculo({ ...novoVeiculo, ano: e.target.value })} /></Campo>
+          <Campo label="Ano" erro={mostrar("ano")}><input inputMode="numeric" value={novoVeiculo.ano} onChange={(e) => setNovoVeiculo({ ...novoVeiculo, ano: e.target.value.replace(/\D/g, "").slice(0, 4) })} maxLength={4} /></Campo>
           <Campo label="Cor"><input value={novoVeiculo.cor} onChange={(e) => setNovoVeiculo({ ...novoVeiculo, cor: e.target.value })} /></Campo>
         </div>
       ) : (
         <p className="wf-empty-note">Nenhum veículo disponível. Cadastre um veículo antes de agendar.</p>
       )}
 
-      <Campo label="Serviço desejado">
+      {mostrar("veiculo") && <p className="wf-error">{erros.veiculo}</p>}
+
+      <Campo label="Serviço desejado" erro={mostrar("servico")}>
         <select className="wf-select" value={servicoId} onChange={(e) => setServicoId(e.target.value)}>
           {(!servicos || servicos.length === 0) && <option value="">Nenhum serviço disponível</option>}
           {servicos && servicos.map((s) => <option key={s.id} value={s.id}>{s.nome}</option>)}
         </select>
       </Campo>
       <div className="wf-grid2">
-        <Campo label="Data"><input type="date" value={data} onChange={(e) => setData(e.target.value)} /></Campo>
-        <Campo label="Horário"><input type="time" value={hora} onChange={(e) => setHora(e.target.value)} /></Campo>
+        <Campo label="Data" erro={mostrar("data")}><input type="date" value={data} min={initial ? undefined : hojeTexto} onChange={(e) => setData(e.target.value)} /></Campo>
+        <Campo label="Horário" erro={mostrar("hora")}><input type="time" value={hora} onChange={(e) => setHora(e.target.value)} /></Campo>
       </div>
       <Campo label="Observações"><textarea rows={2} value={observacoes} onChange={(e) => setObservacoes(e.target.value)} placeholder="Detalhes adicionais (opcional)" /></Campo>
       {showStatus && (
@@ -89,7 +108,7 @@ export function CamposAgendamento({ clientes, veiculos, servicos, fixedClienteId
         </Campo>
       )}
       <div className="wf-modal__foot">
-        <button className="wf-btn wf-btn--accent" disabled={!podeSalvar} onClick={handleSubmit}>{submitLabel}</button>
+        <button className="wf-btn wf-btn--accent" onClick={handleSubmit}>{submitLabel}</button>
       </div>
     </>
   );

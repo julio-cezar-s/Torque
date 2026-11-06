@@ -2,6 +2,7 @@ import { useState } from "react";
 import { TelaCadastro } from "../../autenticacao/telas/TelaCadastro.jsx";
 import { TelaContato } from "../telas/TelaContato.jsx";
 import { TelaInicial } from "../telas/TelaInicial.jsx";
+import { TelaEsqueciSenha } from "../../autenticacao/telas/TelaEsqueciSenha.jsx";
 import { TelaEntrar } from "../../autenticacao/telas/TelaEntrar.jsx";
 import { RodapePublico } from "./RodapePublico.jsx";
 import { CabecalhoPublico } from "./CabecalhoPublico.jsx";
@@ -25,6 +26,7 @@ export function SitePublico({ servicos, onLogin }) {
         {page === "sobre" && <TelaSobre />}
         {page === "contato" && <TelaContato />}
         {page === "login" && <TelaEntrar setPage={setPage} onLogin={onLogin} />}
+        {page === "esqueci-senha" && <TelaEsqueciSenha setPage={setPage} />}
         {page === "cadastro" && <TelaCadastro setPage={setPage} onLogin={onLogin} />}
       </main>
       <RodapePublico />

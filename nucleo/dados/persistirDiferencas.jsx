@@ -1,10 +1,12 @@
 import { supabase } from "../supabase/supabase.jsx";
 import { paraBanco } from "./mapeamento/paraBanco.jsx";
 import { notificarFalha } from "../supabase/avisoDeFalha.jsx";
-
-let fila = Promise.resolve();
+import { enfileirarGravacao } from "./filaDeGravacao.jsx";
+import { persistirConversas } from "./persistirConversas.jsx";
 
 export function persistirDiferencas(tabela, antes, depois) {
+  if (tabela === "conversas") return persistirConversas(antes, depois);
+
   const anteriores = new Map(antes.map((x) => [x.id, x]));
   const idsDepois = new Set(depois.map((x) => x.id));
 
@@ -13,7 +15,7 @@ export function persistirDiferencas(tabela, antes, depois) {
   const removidos = antes.filter((x) => !idsDepois.has(x.id)).map((x) => x.id);
   if (!novos.length && !alterados.length && !removidos.length) return;
 
-  fila = fila.then(async () => {
+  enfileirarGravacao(async () => {
     if (novos.length) {
       const { error } = await supabase.from(tabela).insert(novos.map(paraBanco));
       if (error) throw error;

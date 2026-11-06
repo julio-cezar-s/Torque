@@ -1,11 +1,6 @@
-import { supabase } from "../supabase/supabase.jsx";
-import { doBanco } from "./mapeamento/doBanco.jsx";
+import { carregarTabelaSegura } from "./carregarTabelaSegura.jsx";
 
+// Carga inicial: se der erro, a tela começa com a lista vazia.
 export async function carregarTabela(tabela) {
-  const { data, error } = await supabase.from(tabela).select("*");
-  if (error) {
-    console.error(`Falha ao carregar "${tabela}"`, error);
-    return [];
-  }
-  return data.map(doBanco);
+  return (await carregarTabelaSegura(tabela)) ?? [];
 }

@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { Campo } from "../../../compartilhado/componentes/Campo.jsx";
+import { emailValido } from "../../../compartilhado/validacao/emailValido.jsx";
+import { formatarTelefone } from "../../../compartilhado/validacao/formatarTelefone.jsx";
+import { nomeValido } from "../../../compartilhado/validacao/nomeValido.jsx";
+import { telefoneValido } from "../../../compartilhado/validacao/telefoneValido.jsx";
 import { registrarCliente } from "../integracao/registrarCliente.jsx";
 
 export function TelaCadastro({ setPage, onLogin }) {
@@ -11,12 +15,20 @@ export function TelaCadastro({ setPage, onLogin }) {
   const [erro, setErro] = useState("");
   const [aviso, setAviso] = useState("");
   const [carregando, setCarregando] = useState(false);
+  const [tentou, setTentou] = useState(false);
+
+  const erros = {
+    nome: nomeValido(nome) ? "" : "Informe seu nome completo.",
+    email: emailValido(email) ? "" : "Informe um e-mail válido, como nome@email.com.",
+    telefone: !telefone || telefoneValido(telefone) ? "" : "Telefone inválido. Use DDD + número, ex.: (69) 99999-9999.",
+    senha: senha.length >= 6 ? "" : "A senha precisa ter pelo menos 6 caracteres.",
+    confirmarSenha: senha === confirmarSenha ? "" : "As senhas não coincidem.",
+  };
+  const mostrar = (campo) => (tentou ? erros[campo] : "");
 
   const cadastrar = async () => {
-    setErro(""); setAviso("");
-    if (!nome.trim() || !email.trim() || !senha) { setErro("Preencha todos os campos obrigatórios."); return; }
-    if (senha.length < 6) { setErro("A senha precisa ter pelo menos 6 caracteres."); return; }
-    if (senha !== confirmarSenha) { setErro("As senhas não coincidem."); return; }
+    setErro(""); setAviso(""); setTentou(true);
+    if (Object.values(erros).some(Boolean)) return;
     setCarregando(true);
     try {
       const resultado = await registrarCliente({ nome: nome.trim(), email: email.trim(), telefone, senha });
@@ -37,12 +49,12 @@ export function TelaCadastro({ setPage, onLogin }) {
       <div className="wf-authcard">
         <h1>Criar conta</h1>
         <p className="wf-muted" style={{ marginBottom: 18 }}>Cadastre-se para agendar serviços e acompanhar seu veículo.</p>
-        <Campo label="Nome completo"><input value={nome} onChange={(e) => setNome(e.target.value)} /></Campo>
-        <Campo label="E-mail"><input value={email} onChange={(e) => setEmail(e.target.value)} /></Campo>
-        <Campo label="Telefone"><input value={telefone} onChange={(e) => setTelefone(e.target.value)} /></Campo>
+        <Campo label="Nome completo" erro={mostrar("nome")}><input value={nome} onChange={(e) => setNome(e.target.value)} /></Campo>
+        <Campo label="E-mail" erro={mostrar("email")}><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@email.com" /></Campo>
+        <Campo label="Telefone (opcional)" erro={mostrar("telefone")}><input type="tel" inputMode="tel" value={telefone} onChange={(e) => setTelefone(formatarTelefone(e.target.value, telefone))} placeholder="(69) 99999-9999" /></Campo>
         <div className="wf-grid2">
-          <Campo label="Senha"><input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} /></Campo>
-          <Campo label="Confirmar senha"><input type="password" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} /></Campo>
+          <Campo label="Senha" erro={mostrar("senha")}><input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} /></Campo>
+          <Campo label="Confirmar senha" erro={mostrar("confirmarSenha")}><input type="password" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} /></Campo>
         </div>
         {erro && <p className="wf-error">{erro}</p>}
         {aviso && <p className="wf-success">{aviso}</p>}
