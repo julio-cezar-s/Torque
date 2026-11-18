@@ -7,10 +7,8 @@ Plataforma web para gerenciamento dos serviços de uma oficina automotiva, desen
 ## Equipe
 
 - João Veiga
-- Giovana Oliveira
 - Ricardo Araújo
-- Kaue Alves
-- Julio Cézar
+- Julio Cezar
 - Rayane
 
 ## Sobre o projeto
